@@ -28,6 +28,9 @@ const ChatClient = ({ companion }: ChatClientProps) => {
           content: completion,
         };
 
+        
+        
+
         setMessages((current) => [...current, systemMessage]);
         setInput("");
 
@@ -40,11 +43,12 @@ const ChatClient = ({ companion }: ChatClientProps) => {
       role: "user",
       content: input,
     };
+    console.log("finished user message");
 
     setMessages((current) => [...current, userMessage]);
 
     handleSubmit(e);
-    router.refresh();
+    
   };
 
   return (

@@ -4,10 +4,11 @@ import SearchInput from "@/components/SearchInput";
 import prismadb from "@/lib/prismadb";
 
 interface RootPageProps {
-  searchParams: { categoryId: string; name: string };
+  searchParams: Promise<{ categoryId: string; name: string }>;
 }
 
-const RootPage = async ({searchParams}: RootPageProps) => {
+const RootPage = async (props: RootPageProps) => {
+  const searchParams = await props.searchParams;
   const data = await prismadb.companion.findMany({
     where: {
       categoryId: searchParams.categoryId,

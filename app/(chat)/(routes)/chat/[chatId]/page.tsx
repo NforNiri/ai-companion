@@ -5,10 +5,11 @@ import prismadb from "@/lib/prismadb";
 import ChatClient from "./components/ChatClient";
 
 interface ChatIdPageProps {
-  params: { chatId?: string }; // Made `chatId` optional to handle undefined cases gracefully
+  params: Promise<{ chatId?: string }>; // Made `chatId` optional to handle undefined cases gracefully
 }
 
-const ChatIdPage = async ({ params }: ChatIdPageProps) => {
+const ChatIdPage = async (props: ChatIdPageProps) => {
+  const params = await props.params;
   const { userId } = await auth();
 
   if (!userId) {
