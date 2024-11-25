@@ -1,4 +1,5 @@
-import { streamText } from "ai";
+import dotenv from "dotenv";
+import { streamText, LangChainAdapter } from "ai";
 import { currentUser } from "@clerk/nextjs/server";
 import { Replicate } from "@langchain/community/llms/replicate";
 import { NextResponse } from "next/server";
@@ -8,10 +9,10 @@ import { MemoryManager } from "@/lib/memory";
 import { rateLimit } from "@/lib/rate-limit";
 import prismadb from "@/lib/prismadb";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { chatId: string } }
-) {
+dotenv.config({path: '.env'});
+
+export async function POST(request: Request, props: { params: Promise<{ chatId: string }> }) {
+  const params = await props.params;
   console.log("[CHAT_POST] - Request started");
   try {
     // Parse the request body
@@ -97,7 +98,7 @@ export async function POST(
     const model = new Replicate({
       model:
         "a16z-infra/llama-2-13b-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5",
-      input: { max_length: 2048 },
+      input: { max_length: 512 },
       apiKey: process.env.REPLICATE_API_TOKEN,
     });
     model.verbose = true;
@@ -107,17 +108,18 @@ export async function POST(
     let responseText: string;
     try {
       const rawResponse = await model.invoke(
-        `ONLY generate plain sentences without prefix of who is speaking. DO NOT use ${companion.id}
-        : prefix.
+        `ONLY generate plain sentences without prefix of who is speaking. DO NOT use ${companion.name}
+        : prefix.Limit your answer to a short paragraph not more than 50 words.
 
         ${companion.instructions}
 
-        Below are the relevant details about ${companion.id}'s past and the conversation you are in.
+        Below are the relevant details about ${companion.name}'s past and the conversation you are in.
         ${relevantHistory}
 
-        ${recentChatHistory}\n${companion.id}:`
+        ${recentChatHistory}\n${companion.name}:`
       );
       responseText = rawResponse?.toString().trim() || "";
+      
       console.log("[CHAT_POST] - Model response:", responseText);
     } catch (error) {
       console.error("[CHAT_POST] - Model invocation failed:", error);
@@ -150,8 +152,9 @@ export async function POST(
 
     // Stream the response back to the user
     console.log("[CHAT_POST] - Streaming response back to user");
-    const readableStream = Readable.from([responseText]);
-    return streamText(readableStream);
+    
+    const stream= await model.stream(responseText);
+    return LangChainAdapter.toDataStreamResponse(stream);;
   } catch (error) {
     console.error("[CHAT_POST_ERROR] - Error occurred:", error);
     return new NextResponse("Internal Server Error", { status: 500 });

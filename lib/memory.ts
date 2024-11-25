@@ -1,7 +1,11 @@
+import dotenv from "dotenv";
 import { Redis } from "@upstash/redis";
-import { OpenAIEmbeddings } from "@langchain/openai"
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { PineconeStore } from "@langchain/pinecone";
+
+
+dotenv.config({ path: `.env` });
 
 export type CompanionKey = {
   companionName: string;
@@ -14,14 +18,16 @@ export class MemoryManager {
   private history: Redis;
   private vectorDBClient: Pinecone;
 
-  public constructor() {
+  constructor() {
     this.history = Redis.fromEnv();
-    this.vectorDBClient = new Pinecone();
+    this.vectorDBClient = new Pinecone({
+      apiKey: process.env.PINECONE_API_KEY!,
+    });
   }
 
-  public async init() {
+  // public async init() {
     // The new Pinecone client doesn't have an init method as per the migration guide.
-  }
+  // }
 
   public async vectorSearch(
     recentChatHistory: string,
@@ -48,7 +54,7 @@ export class MemoryManager {
   public static async getInstance(): Promise<MemoryManager> {
     if (!MemoryManager.instance) {
       MemoryManager.instance = new MemoryManager();
-      await MemoryManager.instance.init();
+      
     }
     return MemoryManager.instance;
   }

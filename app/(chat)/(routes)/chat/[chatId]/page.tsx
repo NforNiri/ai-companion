@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
 import prismadb from "@/lib/prismadb";
-import ChatClient from "./components/ChatClient";
+import { ChatClient } from "./components/ChatClient";
+
 
 interface ChatIdPageProps {
   params: Promise<{ chatId?: string }>; // Made `chatId` optional to handle undefined cases gracefully
