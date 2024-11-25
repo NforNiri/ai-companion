@@ -11,7 +11,6 @@
   "dependencies": {
     "@clerk/nextjs": "^6.3.4",
     "@hookform/resolvers": "^3.9.1",
-    "@langchain/community": "^0.3.15",
     "@langchain/core": "^0.3.18",
     "@langchain/openai": "^0.3.14",
     "@langchain/pinecone": "^0.1.3",
